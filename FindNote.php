@@ -3,15 +3,14 @@ error_reporting(E_ALL);
 ini_set('display_errors',1);
 include('dbcon.php');
 
-// 선택한 post에 맞는 comment들만 불러오는 php
+// 선택된 note의 idx에 해당하는 쪽지의 내용, 보낸이, 받은날짜를 받아옴
 
 //POST 값을 읽어온다.
-$post_id=isset($_POST['post_id']) ? $_POST['post_id'] : '';
+$idx=isset($_POST['idx']) ? $_POST['idx'] : '';
 $android = strpos($_SERVER['HTTP_USER_AGENT'], "Android");
 
-
-// 선택한 post_id에 작성된 comment들을 불러온다
-$sql="select nickname, comment_user, id from Comment where post_id='$post_id'";
+// 해당 idx에 해당하는 note의 정보를 불러온다.
+$sql="select send_id, send_date, content from Note where idx='$idx'";
 $stmt = $con->prepare($sql);
 $stmt->execute();
 
@@ -24,17 +23,15 @@ else{
    $data = array();
 
    while($row=$stmt->fetch(PDO::FETCH_ASSOC)){
-
         extract($row);
 
         array_push($data,
-               array('nickname'=>$row["nickname"],
-               'comment'=>$row["comment_user"],
-               'id' => $row['id']
+               array('send_id'=>$row["send_id"],
+               'content'=>$row["content"],
+               'date'=>$row["send_date"]
            ));
 
     }
-
 
     if (!$android) {
            echo "<pre>";
@@ -42,13 +39,12 @@ else{
            echo '</pre>';
     } else{
            header('Content-Type: application/json; charset=utf8');
-           $json = json_encode(array("compost"=>$data), JSON_PRETTY_PRINT+JSON_UNESCAPED_UNICODE);
+           $json = json_encode(array("note"=>$data), JSON_PRETTY_PRINT+JSON_UNESCAPED_UNICODE);
            echo $json;
        }
-}
+ }
 
 ?>
-
 
 <?php
 
@@ -61,7 +57,7 @@ if (!$android){
   <body>
 
      <form action="<?php $_PHP_SELF ?>" method="POST">
-        글번호: <input type = "text" name = "post_id" />
+        쪽지번호: <input type = "text" name = "idx" />
         <input type = "submit" />
      </form>
 

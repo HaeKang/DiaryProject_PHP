@@ -4,8 +4,12 @@ ini_set('display_errors',1);
 
 include('dbcon.php');
 
+// 모든 사용자가 공개글로 쓴 글 목록들을 불러오는 php
+
+
 $android = strpos($_SERVER['HTTP_USER_AGENT'], "Android");
 
+// 공개글 모두 다 가져옴
 $sql="select nickname,post_id,title,date from Post where private = false ";
 $stmt = $con->prepare($sql);
 $stmt->execute();

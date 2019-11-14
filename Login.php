@@ -4,55 +4,66 @@ ini_set('display_errors',1);
 
 include('dbcon.php');
 
+// 회원 로그인하는 php
 
 //POST 값을 읽어온다.
-$id=isset($_POST['id']) ? $_POST['id'] : '';
-$pw = isset($_POST['pw']) ? $_POST['pw'] : '';
+$id= isset($_POST['id']) ? $_POST['id'] : '';
+$user_pw = isset($_POST['pw']) ? $_POST['pw'] : '';
+
 $android = strpos($_SERVER['HTTP_USER_AGENT'], "Android");
 
 
-if ($id != "" ){
+if ($id != "" ){  // id 입력값이 null이 아니라면
 
-   $sql="select * from User where id='$id' and pw='$pw'";
+   $sql="select * from User where id='$id'";
    $stmt = $con->prepare($sql);
    $stmt->execute();
 
+
+
    if ($stmt->rowCount() == 0){
-
-       echo "아이디와 패스워드를 다시 확인하세요";
+       echo "아이디를 다시 확인하세요";
    }
- else{
 
-     $data = array();
+   else{
+     $result = $stmt->fetch(PDO::FETCH_ASSOC);
+     extract($result);
 
-       while($row=$stmt->fetch(PDO::FETCH_ASSOC)){
+     $db_pw = $result['pw'];  // db에 저장된 pw (암호화된 비밀번호)
 
-         extract($row);
+     // 비밀번호가 일치하다면
+     if(password_verify($user_pw, $db_pw)){
+       $data = array();
 
-           array_push($data,
-               array('id'=>$row["id"],
-               'pw'=>$row["pw"],
-               'nickname'=>$row["nickname"],
-           ));
+      array_push($data,
+          array('id'=>$result["id"],
+                'nickname'=>$result["nickname"]
+             ));
 
+
+             if (!$android) {
+                 echo "<pre>";
+                 print_r($data);
+                 echo '</pre>';
+             }
+             else
+             {
+                 header('Content-Type: application/json; charset=utf8');
+                 $json = json_encode(array("webnautes"=>$data), JSON_PRETTY_PRINT+JSON_UNESCAPED_UNICODE);
+                 echo $json;
+             }
+      }
+
+      else{
+           echo "비밀번호를 다시 확인하세요";
          }
-
-
-       if (!$android) {
-           echo "<pre>";
-           print_r($data);
-           echo '</pre>';
-       }else
-       {
-           header('Content-Type: application/json; charset=utf8');
-           $json = json_encode(array("webnautes"=>$data), JSON_PRETTY_PRINT+JSON_UNESCAPED_UNICODE);
-           echo $json;
        }
+}
+
+ else{
+    echo "존재하지 않는 회원입니다";
    }
-}
-else {
-   echo "아이디를 입력하세요 ";
-}
+
 
 ?>
 

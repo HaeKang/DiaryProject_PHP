@@ -3,15 +3,14 @@ error_reporting(E_ALL);
 ini_set('display_errors',1);
 include('dbcon.php');
 
-// 선택한 post에 맞는 comment들만 불러오는 php
+// 사용자가 글을 작성한 날짜들을 불러오는 php
 
 //POST 값을 읽어온다.
-$post_id=isset($_POST['post_id']) ? $_POST['post_id'] : '';
+$id=isset($_POST['id']) ? $_POST['id'] : '';
 $android = strpos($_SERVER['HTTP_USER_AGENT'], "Android");
 
-
-// 선택한 post_id에 작성된 comment들을 불러온다
-$sql="select nickname, comment_user, id from Comment where post_id='$post_id'";
+// 글 쓴 날짜를 받아옴 
+$sql="select date from Post where id='$id'";
 $stmt = $con->prepare($sql);
 $stmt->execute();
 
@@ -27,11 +26,7 @@ else{
 
         extract($row);
 
-        array_push($data,
-               array('nickname'=>$row["nickname"],
-               'comment'=>$row["comment_user"],
-               'id' => $row['id']
-           ));
+        array_push($data, array( 'date'=>$row["date"]) );
 
     }
 
@@ -42,10 +37,12 @@ else{
            echo '</pre>';
     } else{
            header('Content-Type: application/json; charset=utf8');
-           $json = json_encode(array("compost"=>$data), JSON_PRETTY_PRINT+JSON_UNESCAPED_UNICODE);
+           $json = json_encode(array("date"=>$data), JSON_PRETTY_PRINT+JSON_UNESCAPED_UNICODE);
            echo $json;
        }
 }
+
+
 
 ?>
 
@@ -61,7 +58,7 @@ if (!$android){
   <body>
 
      <form action="<?php $_PHP_SELF ?>" method="POST">
-        글번호: <input type = "text" name = "post_id" />
+        아이디: <input type = "text" name = "id" />
         <input type = "submit" />
      </form>
 

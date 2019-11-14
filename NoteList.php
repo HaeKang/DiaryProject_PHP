@@ -3,15 +3,14 @@ error_reporting(E_ALL);
 ini_set('display_errors',1);
 include('dbcon.php');
 
-// 선택한 post에 맞는 comment들만 불러오는 php
+// 사용자가 받은 쪽지 목록들 불러오는 php
 
 //POST 값을 읽어온다.
-$post_id=isset($_POST['post_id']) ? $_POST['post_id'] : '';
+$recv_id = isset($_POST['recv_id']) ? $_POST['recv_id'] : '';
 $android = strpos($_SERVER['HTTP_USER_AGENT'], "Android");
 
-
-// 선택한 post_id에 작성된 comment들을 불러온다
-$sql="select nickname, comment_user, id from Comment where post_id='$post_id'";
+// recv_id(받는이)에 해당하는 note 정보들을 불러온다.
+$sql="select send_id, content, send_date, idx from Note where recv_id='$recv_id'";
 $stmt = $con->prepare($sql);
 $stmt->execute();
 
@@ -28,9 +27,10 @@ else{
         extract($row);
 
         array_push($data,
-               array('nickname'=>$row["nickname"],
-               'comment'=>$row["comment_user"],
-               'id' => $row['id']
+               array('send_id'=>$row["send_id"],
+               'date'=>$row["send_date"],
+               'content'=>$row["content"],
+               'idx' => $row['idx']
            ));
 
     }
@@ -42,10 +42,12 @@ else{
            echo '</pre>';
     } else{
            header('Content-Type: application/json; charset=utf8');
-           $json = json_encode(array("compost"=>$data), JSON_PRETTY_PRINT+JSON_UNESCAPED_UNICODE);
+           $json = json_encode(array("notelist"=>$data), JSON_PRETTY_PRINT+JSON_UNESCAPED_UNICODE);
            echo $json;
        }
-}
+     }
+
+
 
 ?>
 
@@ -61,7 +63,7 @@ if (!$android){
   <body>
 
      <form action="<?php $_PHP_SELF ?>" method="POST">
-        글번호: <input type = "text" name = "post_id" />
+        글번호: <input type = "text" name = "recv_nick" />
         <input type = "submit" />
      </form>
 

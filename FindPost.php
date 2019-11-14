@@ -3,15 +3,18 @@ error_reporting(E_ALL);
 ini_set('display_errors',1);
 include('dbcon.php');
 
+// post를 삭제하거나 해당 post_id에 맞는 post의 내용, 글쓴이 등의 데이터를 불러오는 두가지 경우를 포함한 php
+
 
 //POST 값을 읽어온다.
 $post_id=isset($_POST['post_id']) ? $_POST['post_id'] : '';
-$state = isset($_POST['state']) ? $_POST['state'] : '';
+$state = isset($_POST['state']) ? $_POST['state'] : ''; // 글을 찾는건지 삭제하는건지 판단하는 변수
 $android = strpos($_SERVER['HTTP_USER_AGENT'], "Android");
 
+// post를 find 하는 경우라면
 if($state == "find"){
 
-$sql="select nickname, title, date, content, image from Post where post_id='$post_id'";
+$sql="select id, nickname, title, date, content, weather from Post where post_id='$post_id'";
 $stmt = $con->prepare($sql);
 $stmt->execute();
 
@@ -32,7 +35,8 @@ else{
                'title'=>$row["title"],
                'date'=>$row["date"],
                'content'=>$row["content"],
-               'image'=>base64_encode($row["image"])
+               'weather' => $row["weather"],
+               'id' => $row['id']
            ));
 
     }
@@ -50,6 +54,7 @@ else{
      }
 }
 
+// post를 삭제하는 경우라면
 else{
   $sql="delete from Post where post_id='$post_id'";
   $stmt = $con->prepare($sql);
